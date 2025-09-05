@@ -1,12 +1,33 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    public Action OnPowerUpStart;
+    public Action OnPowerUpStop;
+
     [SerializeField] private float _speed;
     [SerializeField] private Camera _camera;
+    [SerializeField] private float _powerUpDuration;
     private Vector2 _moveVector;
     private Rigidbody _rigidbody;
+    private Coroutine _powerUpCoroutine;
+
+
+    public void PickPowerUp()
+    {
+        if (_powerUpCoroutine != null) StopCoroutine(_powerUpCoroutine);
+        _powerUpCoroutine = StartCoroutine(StartPowerUp());
+    }
+
+    private IEnumerator StartPowerUp()
+    {
+        if (OnPowerUpStart != null) OnPowerUpStart();
+        yield return new WaitForSeconds(_powerUpDuration);
+        if (OnPowerUpStop != null) OnPowerUpStop();
+    }
 
     private void Awake()
     {
@@ -24,25 +45,25 @@ public class PlayerController : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
-    
+
     private void FixedUpdate()
     {
         // Horizontal = a or left (-) & d or right (+)
-        float horizontal = _moveVector.x;
+        var horizontal = _moveVector.x;
         // Vertical = s or down (-) & w or up (+)
-        float vertical = _moveVector.y;
-        
-        Vector3 forward = _camera.transform.forward;
-        Vector3 right = _camera.transform.right;
+        var vertical = _moveVector.y;
+
+        var forward = _camera.transform.forward;
+        var right = _camera.transform.right;
         forward.y = 0;
         right.y = 0;
-        
+
         // Normalize agar kecepatan player tidak jadi lebih lambat jika tergantung arah kamera
         forward.Normalize();
         right.Normalize();
-        
+
         // Normalize move agar kecepatan diagonal tidak lebih cepat dari jalan lurus
-        Vector3 move = (forward * vertical + right * horizontal).normalized;
+        var move = (forward * vertical + right * horizontal).normalized;
         _rigidbody.linearVelocity = move * _speed;
     }
 }

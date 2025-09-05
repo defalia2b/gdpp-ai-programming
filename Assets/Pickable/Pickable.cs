@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Pickable : MonoBehaviour
 {
-    [SerializeField] public Pickable PickableType;
+    [SerializeField] public PickableTypes PickableType;
     public Action<Pickable> OnPicked;
 
     private void OnTriggerEnter(Collider other)
