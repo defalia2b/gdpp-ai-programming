@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,10 +12,30 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _speed;
     [SerializeField] private Camera _camera;
     [SerializeField] private float _powerUpDuration;
+    [SerializeField] private int _health;
+    [SerializeField] private TMP_Text _healthText;
+    [SerializeField] private Transform _respawnPoint;
     private Vector2 _moveVector;
     private Rigidbody _rigidbody;
     private Coroutine _powerUpCoroutine;
+    private bool _isPowerUpActive = false;
 
+
+    public void Dead()
+    {
+        _health -= 1;
+        if (_health > 0)
+        {
+            transform.position = _respawnPoint.position;
+        }
+        else
+        {
+            _health = 0;
+            Debug.Log("Lose");
+        }
+
+        UpdateUI();
+    }
 
     public void PickPowerUp()
     {
@@ -24,13 +45,16 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator StartPowerUp()
     {
+        _isPowerUpActive = true;
         if (OnPowerUpStart != null) OnPowerUpStart();
         yield return new WaitForSeconds(_powerUpDuration);
+        _isPowerUpActive = false;
         if (OnPowerUpStop != null) OnPowerUpStop();
     }
 
     private void Awake()
     {
+        UpdateUI();
         _rigidbody = GetComponent<Rigidbody>();
         HideAndLockCursor();
     }
@@ -65,5 +89,17 @@ public class PlayerController : MonoBehaviour
         // Normalize move agar kecepatan diagonal tidak lebih cepat dari jalan lurus
         var move = (forward * vertical + right * horizontal).normalized;
         _rigidbody.linearVelocity = move * _speed;
+    }
+
+    private void OnCollisionEnter(Collision other)
+    {
+        if (_isPowerUpActive)
+            if (other.gameObject.CompareTag("Enemy"))
+                other.gameObject.GetComponent<Enemy>().Dead();
+    }
+
+    private void UpdateUI()
+    {
+        _healthText.text = "Health: " + _health;
     }
 }
