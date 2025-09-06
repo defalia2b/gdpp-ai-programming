@@ -7,6 +7,7 @@ public class PatrolState : IBaseState
 
     public void EnterState(Enemy enemy)
     {
+        if (enemy == null) return;
         _isMoving = false;
         enemy.Animator.SetTrigger("PatrolState");
     }
